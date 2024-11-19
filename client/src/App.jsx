@@ -1,3 +1,5 @@
+import { DndContext } from "@dnd-kit/core";
+import { useState } from "react";
 import Board from "./components/Board.jsx";
 
 const mockNotes = [
@@ -19,22 +21,43 @@ const mockNotes = [
     description: "Description for Task 3",
     status: "done",
   },
+  {
+    id: "4",
+    title: "Task 4",
+    description: "Description for Task 4",
+    status: "done",
+  },
 ];
 
 function App() {
-  const boards = ["backlog", "in-progress", "done"];
+  const [notes, setNotes] = useState(mockNotes);
+
+  const boards = ["backlog", "in-progress", "done", "to-review"];
+
+  const handleDragEnd = (event) => {
+    // happens when a note gets dragged to another board
+    const { active, over } = event;
+    if (active.id !== over.id) {
+      setNotes((prevNotes) =>
+        prevNotes.map((note) =>
+          note.id === active.id ? { ...note, status: over.id } : note
+        )
+      );
+    }
+  };
+
   return (
-    <>
+    <DndContext onDragEnd={handleDragEnd}>
       <div style={{ display: "flex", gap: "20px" }}>
         {boards.map((board) => (
           <Board
             key={board}
             title={board}
-            notes={mockNotes.filter((note) => note.status === board)}
+            notes={notes.filter((note) => note.status === board)}
           />
         ))}
       </div>
-    </>
+    </DndContext>
   );
 }
 
