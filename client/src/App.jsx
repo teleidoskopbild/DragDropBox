@@ -35,6 +35,7 @@ function App() {
   const [activeNote, setActiveNote] = useState(null);
   const [newTitle, setNewTitle] = useState("");
   const [newDescription, setNewDescription] = useState("");
+  const [userLog, setUserLog] = useState([]);
 
   const boards = ["backlog", "in-progress", "done", "to-review"];
 
@@ -53,6 +54,13 @@ function App() {
           note.id === active.id ? { ...note, status: over.id } : note
         )
       );
+      // Log-Nachricht erstellen, wenn eine Notiz verschoben wird
+      setUserLog((prevLog) => [
+        ...prevLog,
+        `${activeNote.title} wurde verschoben nach ${
+          over.id
+        } um ${new Date().toLocaleTimeString()}`,
+      ]);
     }
   };
 
@@ -67,19 +75,15 @@ function App() {
     setNotes([...notes, newNote]);
     setNewTitle(""); // Eingabefelder zurücksetzen
     setNewDescription("");
+    // Log-Nachricht erstellen, wenn eine Notiz erstellt wird
+    setUserLog((prevLog) => [
+      ...prevLog,
+      `Neue Notiz "${newTitle}" wurde um ${new Date().toLocaleTimeString()} erstellt`,
+    ]);
   };
 
   return (
     <DndContext onDragEnd={handleDragEnd} onDragStart={handleDragStart}>
-      <div style={{ display: "flex", gap: "20px" }}>
-        {boards.map((board) => (
-          <Board
-            key={board}
-            title={board}
-            notes={notes.filter((note) => note.status === board)}
-          />
-        ))}
-      </div>
       <form
         onSubmit={handleSubmit}
         style={{
@@ -87,7 +91,7 @@ function App() {
           flexDirection: "column",
           width: "300px",
           gap: "10px",
-          marginTop: "20px",
+          margin: "20px",
         }}
       >
         <input
@@ -105,6 +109,22 @@ function App() {
         />
         <button type="submit">Notiz hinzufügen</button>
       </form>
+      <div style={{ display: "flex", gap: "20px" }}>
+        {boards.map((board) => (
+          <Board
+            key={board}
+            title={board}
+            notes={notes.filter((note) => note.status === board)}
+          />
+        ))}
+        <h3>User Log</h3>
+        <ul>
+          {userLog.map((log, index) => (
+            <li key={index}>{log}</li>
+          ))}
+        </ul>
+      </div>
+
       <DragOverlay>
         {activeNote ? <Note note={activeNote} /> : null}{" "}
         {/* Overlay für das dragged Element */}
