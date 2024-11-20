@@ -1,6 +1,7 @@
-import { DndContext } from "@dnd-kit/core";
+import { DndContext, DragOverlay } from "@dnd-kit/core";
 import { useState } from "react";
 import Board from "./components/Board.jsx";
+import Note from "./components/Note.jsx";
 
 const mockNotes = [
   {
@@ -31,13 +32,22 @@ const mockNotes = [
 
 function App() {
   const [notes, setNotes] = useState(mockNotes);
+  const [activeNote, setActiveNote] = useState(null);
+  const [newTitle, setNewTitle] = useState("");
+  const [newDescription, setNewDescription] = useState("");
 
   const boards = ["backlog", "in-progress", "done", "to-review"];
 
+  const handleDragStart = (event) => {
+    const { active } = event;
+    const note = notes.find((note) => note.id === active.id);
+    setActiveNote(note);
+  };
+
   const handleDragEnd = (event) => {
-    // happens when a note gets dragged to another board
     const { active, over } = event;
-    if (active.id !== over.id) {
+    setActiveNote(null);
+    if (over && active.id !== over.id) {
       setNotes((prevNotes) =>
         prevNotes.map((note) =>
           note.id === active.id ? { ...note, status: over.id } : note
@@ -46,8 +56,21 @@ function App() {
     }
   };
 
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const newNote = {
+      id: (notes.length + 1).toString(), // Generiere eine neue ID
+      title: newTitle,
+      description: newDescription,
+      status: "backlog", // Neue Notiz landet im "backlog"
+    };
+    setNotes([...notes, newNote]);
+    setNewTitle(""); // Eingabefelder zurücksetzen
+    setNewDescription("");
+  };
+
   return (
-    <DndContext onDragEnd={handleDragEnd}>
+    <DndContext onDragEnd={handleDragEnd} onDragStart={handleDragStart}>
       <div style={{ display: "flex", gap: "20px" }}>
         {boards.map((board) => (
           <Board
@@ -57,6 +80,35 @@ function App() {
           />
         ))}
       </div>
+      <form
+        onSubmit={handleSubmit}
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          width: "300px",
+          gap: "10px",
+          marginTop: "20px",
+        }}
+      >
+        <input
+          type="text"
+          value={newTitle}
+          onChange={(e) => setNewTitle(e.target.value)}
+          placeholder="Titel"
+          required
+        />
+        <textarea
+          value={newDescription}
+          onChange={(e) => setNewDescription(e.target.value)}
+          placeholder="Beschreibung"
+          required
+        />
+        <button type="submit">Notiz hinzufügen</button>
+      </form>
+      <DragOverlay>
+        {activeNote ? <Note note={activeNote} /> : null}{" "}
+        {/* Overlay für das dragged Element */}
+      </DragOverlay>
     </DndContext>
   );
 }

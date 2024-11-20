@@ -2,7 +2,7 @@ import { useDroppable } from "@dnd-kit/core";
 import Note from "./Note";
 
 const Board = ({ title, notes }) => {
-  const { setNodeRef } = useDroppable({
+  const { setNodeRef, isOver } = useDroppable({
     id: title,
   });
 
@@ -10,11 +10,12 @@ const Board = ({ title, notes }) => {
     <div
       ref={setNodeRef}
       style={{
-        border: "1px solid black",
+        border: "3px solid black",
         padding: "10px",
         width: "300px",
         minHeight: "200px",
         backgroundColor: "lightgray",
+        borderColor: isOver ? "#00ff00" : "black",
       }}
     >
       <h3>{title}</h3>
